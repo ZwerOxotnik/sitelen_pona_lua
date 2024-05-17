@@ -130,10 +130,18 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 
 	local function parse(text)
 		local _, end_i, punc, word, punc2 = text:find("^([%p]*)([^%p]*)([%p]*)")
-		word = find_special_characters(word)
+		if word == "" then
+			word = nil
+		else
+			word = find_special_characters(word)
+		end
+		if punc2 == "" then
+			punc2 = nil
+		end
+
 		local sitelen_pona_char
 		local is_end = #text == end_i
-		if punc ~= "" then
+		if punc then
 			sitelen_pona_char = __characters_syntax[punc]
 			if sitelen_pona_char then
 				result[#result+1] = {
@@ -148,7 +156,7 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 				}
 			end
 		end
-		if word and word ~= "" then
+		if word then
 			local sitelen_pona = __syntax[word]
 			result[#result+1] = {
 				sitelep_pona = sitelen_pona,
@@ -156,7 +164,7 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 				is_add_space = (is_end and punc2 == nil)
 			}
 		end
-		if punc2 and punc2 ~= "" then
+		if punc2 then
 			sitelen_pona_char = __characters_syntax[punc2]
 			if sitelen_pona_char then
 				result[#result+1] = {
