@@ -20,8 +20,9 @@ M.__syntax = __syntax
 
 ---@class SitelenPonaPart : table
 ---@field sitelep_pona SitelenPona?
----@field original string
----@field is_add_space boolean
+---@field original string?
+---@field is_add_space true?
+---@field is_new_line boolean?
 
 
 ---@param word string
@@ -32,8 +33,10 @@ end
 
 
 ---@param _text string
+---@param new_line_pattern string?new_line_pattern
 ---@return SitelenPonaPart[], boolean # string, is sitelen pona?
-function M.toki_pona_mute_to_sitelen_pona(_text)
+function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
+	new_line_pattern = new_line_pattern or "[^\r\n]+"
 	local is_sitelen_pona = false
 	local result = {}
 
@@ -62,8 +65,13 @@ function M.toki_pona_mute_to_sitelen_pona(_text)
 		end
 	end
 
-	for part_text in _text:gmatch("[^%s]+") do
-		parse(part_text)
+	for line in _text:gmatch(new_line_pattern) do -- TODO: improve, detect several new lines
+		for part_text in line:gmatch("[^%s]+") do
+			parse(part_text)
+		end
+		result[#result+1] = {
+			is_new_line = true
+		}
 	end
 
 	return result, is_sitelen_pona
