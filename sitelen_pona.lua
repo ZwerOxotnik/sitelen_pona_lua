@@ -7,7 +7,7 @@
 
 ---@class SitelenPonaModule : module
 local M = {
-	_VERSION = "0.0.1",
+	_VERSION = "0.0.2",
 	_LICENSE = "MIT",
 	_SOURCE  = "https://github.com/ZwerOxotnik/sitelen_pona_lua"
 }
@@ -16,6 +16,10 @@ local M = {
 ---@type table<string, SitelenPona>[]
 local __syntax = require("sitelen_pona_syntax")
 M.__syntax = __syntax
+
+---@type table<string, SitelenPona>[]
+local __characters_syntax = require("characters_to_sitelen_pona")
+M.__characters_syntax = __characters_syntax
 
 
 ---@class SitelenPonaPart : table
@@ -42,25 +46,44 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 
 	local function parse(text)
 		local _, end_i, punc, word, punc2 = text:find("^([%p]*)([^%p]*)([%p]*)")
-		result[#result+1] = {
-			original = punc,
-			is_add_space = (#text == end_i and word == nil)
-		}
+		local sitelen_pona_char = __characters_syntax[punc]
+		local is_end = #text == end_i
+		if sitelen_pona_char then
+			result[#result+1] = {
+				sitelep_pona = sitelen_pona_char,
+				original = word,
+				is_add_space = (is_end and word == nil)
+			}
+		else
+			result[#result+1] = {
+				original = punc,
+				is_add_space = (is_end and word == nil)
+			}
+		end
 		if word then
 			local sitelen_pona = __syntax[word]
 			result[#result+1] = {
 				sitelep_pona = sitelen_pona,
 				original = word,
-				is_add_space = (#text == end_i and punc2 == nil)
+				is_add_space = (is_end and punc2 == nil)
 			}
 		end
 		if punc2 then
-			result[#result+1] = {
-				original = punc2,
-				is_add_space = #text == end_i
-			}
+			sitelen_pona_char = __characters_syntax[punc2]
+			if sitelen_pona_char then
+				result[#result+1] = {
+					sitelep_pona = sitelen_pona_char,
+					original = punc2,
+					is_add_space = is_end
+				}
+			else
+				result[#result+1] = {
+					original = punc2,
+					is_add_space = is_end
+				}
+			end
 		end
-		if #text ~= end_i then
+		if not is_end then
 			parse(text:sub(end_i+1, #text))
 		end
 	end
