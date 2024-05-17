@@ -1,4 +1,6 @@
 -- Created for "sitelen seli kiwen" font (https://www.kreativekorp.com/software/fonts/sitelenselikiwen/)
+
+-- TODO: use preprocessor
 return {
 	["["] = "󱦐",
 	["]"] = "󱦑",
@@ -18,4 +20,13 @@ return {
 	["』"] = "』",
 	["„"] = "„",
 	["‚"] = "‚",
+	["."] = ".",
+	[","] = ",",
+	["、"] = "、",
+	["。"] = "。",
+	["+"] = "󱤊",
+	["?"] = "󱥙",
+	["1"] = "󱥳",
+	["2"] = "󱥮",
+	["5"] = "󱤭",
 }

@@ -21,6 +21,12 @@ M.__syntax = __syntax
 local __characters_syntax = require("characters_to_sitelen_pona")
 M.__characters_syntax = __characters_syntax
 
+---@type table<string, SitelenPona>[]
+local __compound_syntax = require("sitelen_pona_kulupu")
+M.__compound_syntax = __compound_syntax
+
+
+-- TODO: use preprocessor
 local __special_chars_length = {} -- messy workaround due to Lua bug
 local __dots = {
 	["。"] = true,
@@ -77,7 +83,7 @@ end
 
 ---@param _text string
 ---@param new_line_pattern string?new_line_pattern
----@return SitelenPonaPart[], boolean # string, is sitelen pona?
+---@return SitelenPonaPart[], boolean # string[], is sitelen pona?
 function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 	new_line_pattern = new_line_pattern or "[^\r\n]+"
 	local is_sitelen_pona = false
@@ -130,6 +136,9 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 
 	local function parse(text)
 		local _, end_i, punc, word, punc2 = text:find("^([%p]*)([^%p]*)([%p]*)")
+		if punc == "" then
+			punc = nil
+		end
 		if word == "" then
 			word = nil
 		else
@@ -195,6 +204,76 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 	end
 
 	return result, is_sitelen_pona
+end
+
+
+---@param parts SitelenPonaPart[]
+---@return SitelenPonaPart[], boolean # is compounded?
+function M.compound_sitelen_pona(parts)
+	local parts_copy = {}
+	for i = 1, #parts do
+		parts_copy[i] = parts[i]
+	end
+
+	if #parts_copy <= 1 then return parts_copy, false end
+
+	local original_text = ""
+	local compound_length = 0
+	local compound_syntax = __compound_syntax
+	local i = 0
+	while true do
+		if i == #parts_copy then
+			return parts_copy, #parts_copy ~= #parts
+		end
+
+		i = i + 1
+		local part = parts_copy[i]
+		if not part.sitelep_pona then
+			compound_length = 0
+			compound_syntax = __compound_syntax
+			original_text = ""
+			goto skip
+		end
+
+		if part.original == "-" then
+			if compound_length > 0 then
+				compound_length = compound_length + 1
+			end
+			goto skip
+		end
+
+		compound_syntax = compound_syntax[part.sitelep_pona] or __compound_syntax
+		if compound_syntax == __compound_syntax then
+			original_text = ""
+			compound_length = 0
+
+			compound_syntax = compound_syntax[part.sitelep_pona]
+			if compound_syntax == nil then
+				compound_syntax = __compound_syntax
+				goto skip
+			end
+		end
+
+		compound_length = compound_length + 1
+
+		original_text = original_text .. part.original .. " "
+		if type(compound_syntax) == "table" then
+			goto skip
+		end
+
+		local prev_i = i - compound_length + 1
+		for _ = 1, compound_length - 1 do
+			table.remove(parts_copy, prev_i)
+		end
+		i = prev_i
+		parts_copy[i] = {
+			sitelep_pona = compound_syntax,
+			original = original_text,
+			is_add_space = part.is_add_space
+		}
+
+		::skip::
+	end
 end
 
 
