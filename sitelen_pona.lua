@@ -7,7 +7,7 @@
 
 ---@class SitelenPonaModule : module
 local M = {
-	_VERSION = "0.0.2",
+	_VERSION = "0.0.3",
 	_LICENSE = "MIT",
 	_SOURCE  = "https://github.com/ZwerOxotnik/sitelen_pona_lua"
 }
@@ -68,7 +68,7 @@ __special_char_expr = __special_char_expr .. "])"
 
 
 ---@class SitelenPonaPart : table
----@field sitelep_pona SitelenPona?
+---@field sitelen_pona SitelenPona?
 ---@field original string?
 ---@field is_add_space true?
 ---@field is_new_line boolean?
@@ -89,8 +89,55 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 	local is_sitelen_pona = false
 	local result = {}
 
+
 	---@param word string
-	---@return string
+	---@return string?
+	local function split_numbers(word)
+		local last_part = word
+		local last_result_i = 0
+		while true do
+			local first_i, last_i, number = last_part:find("(%d+)", last_result_i + 1)
+			if first_i == nil then
+				if last_result_i == 1 then
+					return word
+				else
+					return last_part:sub(last_result_i+1, #last_part)
+				end
+			end
+
+			if last_result_i < last_i and last_result_i > 0 then
+				local prev_part = last_part:sub(last_result_i+1, first_i-1)
+				local sitelen_pona_char = __syntax[prev_part]
+				if sitelen_pona_char then
+					result[#result+1] = {
+						sitelen_pona = sitelen_pona_char,
+						original = prev_part
+					}
+				else
+					result[#result+1] = {original = prev_part}
+				end
+			end
+
+			local sitelen_pona_char = __syntax[number]
+			if sitelen_pona_char then
+				result[#result+1] = {
+					sitelen_pona = sitelen_pona_char,
+					original = number
+				}
+			else
+				result[#result+1] = {original = number}
+			end
+
+			last_result_i = last_i
+
+			if last_i == #number then
+				return
+			end
+		end
+	end
+
+	---@param word string
+	---@return string?
 	local function find_special_characters(word)
 		local last_part = word
 		local last_result_i = 1
@@ -98,9 +145,9 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 			local first_i, last_i, char = last_part:find(__special_char_expr, last_result_i)
 			if first_i == nil then
 				if last_result_i == 1 then
-					return word
+					return split_numbers(word)
 				else
-					return last_part:sub(last_result_i, #last_part)
+					return split_numbers(last_part:sub(last_result_i, #last_part))
 				end
 			end
 
@@ -109,11 +156,14 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 				local sitelen_pona_char = __syntax[prev_part]
 				if sitelen_pona_char then
 					result[#result+1] = {
-						sitelep_pona = sitelen_pona_char,
+						sitelen_pona = sitelen_pona_char,
 						original = prev_part
 					}
 				else
-					result[#result+1] = {original = prev_part}
+					local _word = split_numbers(prev_part)
+					if _word then
+						result[#result+1] = {original = _word}
+					end
 				end
 			end
 
@@ -122,14 +172,33 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 			local sitelen_pona_char = __characters_syntax[original_char]
 			if sitelen_pona_char then
 				result[#result+1] = {
-					sitelep_pona = sitelen_pona_char,
+					sitelen_pona = sitelen_pona_char,
 					original = original_char
 				}
 			else
 				result[#result+1] = {original = original_char}
 			end
 			if last_i == #char then
-				return ""
+				return nil
+			end
+		end
+	end
+
+	---@param text string
+	local function add_punctuations(text)
+		for char in text:gmatch(".") do
+			sitelen_pona_char = __characters_syntax[char]
+			if sitelen_pona_char then
+				result[#result+1] = {
+					sitelen_pona = sitelen_pona_char,
+					original = char,
+					is_add_space = (is_end and word == nil)
+				}
+			else
+				result[#result+1] = {
+					original = char,
+					is_add_space = (is_end and word == nil)
+				}
 			end
 		end
 	end
@@ -143,6 +212,9 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 			word = nil
 		else
 			word = find_special_characters(word)
+			if word == "" then
+				word = nil
+			end
 		end
 		if punc2 == "" then
 			punc2 = nil
@@ -151,42 +223,25 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 		local sitelen_pona_char
 		local is_end = #text == end_i
 		if punc then
-			sitelen_pona_char = __characters_syntax[punc]
-			if sitelen_pona_char then
-				result[#result+1] = {
-					sitelep_pona = sitelen_pona_char,
-					original = punc,
-					is_add_space = (is_end and word == nil)
-				}
-			else
-				result[#result+1] = {
-					original = punc,
-					is_add_space = (is_end and word == nil)
-				}
-			end
+			add_punctuations(punc)
 		end
 		if word then
 			local sitelen_pona = __syntax[word]
-			result[#result+1] = {
-				sitelep_pona = sitelen_pona,
-				original = word,
-				is_add_space = (is_end and punc2 == nil)
-			}
-		end
-		if punc2 then
-			sitelen_pona_char = __characters_syntax[punc2]
-			if sitelen_pona_char then
+			if sitelen_pona then
 				result[#result+1] = {
-					sitelep_pona = sitelen_pona_char,
-					original = punc2,
-					is_add_space = is_end
+					sitelen_pona = sitelen_pona,
+					original = word,
+					is_add_space = (is_end and punc2 == nil)
 				}
 			else
 				result[#result+1] = {
-					original = punc2,
-					is_add_space = is_end
+					original = word,
+					is_add_space = (is_end and punc2 == nil)
 				}
 			end
+		end
+		if punc2 then
+			add_punctuations(punc2)
 		end
 
 		if not is_end then
@@ -201,6 +256,10 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 		result[#result+1] = {
 			is_new_line = true
 		}
+	end
+
+	if #result > 0 and result[#result].is_new_line then
+		result[#result] = nil
 	end
 
 	return result, is_sitelen_pona
@@ -228,7 +287,7 @@ function M.compound_sitelen_pona(parts)
 
 		i = i + 1
 		local part = parts_copy[i]
-		if not part.sitelep_pona then
+		if not part.sitelen_pona then
 			compound_length = 0
 			compound_syntax = __compound_syntax
 			original_text = ""
@@ -242,12 +301,12 @@ function M.compound_sitelen_pona(parts)
 			goto skip
 		end
 
-		compound_syntax = compound_syntax[part.sitelep_pona] or __compound_syntax
+		compound_syntax = compound_syntax[part.sitelen_pona] or __compound_syntax
 		if compound_syntax == __compound_syntax then
 			original_text = ""
 			compound_length = 0
 
-			compound_syntax = compound_syntax[part.sitelep_pona]
+			compound_syntax = compound_syntax[part.sitelen_pona]
 			if compound_syntax == nil then
 				compound_syntax = __compound_syntax
 				goto skip
@@ -267,7 +326,7 @@ function M.compound_sitelen_pona(parts)
 		end
 		i = prev_i
 		parts_copy[i] = {
-			sitelep_pona = compound_syntax,
+			sitelen_pona = compound_syntax,
 			original = original_text,
 			is_add_space = part.is_add_space
 		}
