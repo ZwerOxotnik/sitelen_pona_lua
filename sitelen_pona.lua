@@ -117,6 +117,8 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 				end
 			end
 
+			---@cast first_i integer
+			---@cast last_i integer
 			if last_result_i < last_i then
 				local prev_part = last_part:sub(last_result_i+1, first_i-1)
 				local sitelen_pona_char = __lexicon[prev_part]
