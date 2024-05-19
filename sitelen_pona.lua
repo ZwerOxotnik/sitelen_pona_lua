@@ -21,7 +21,7 @@ sitelen_pona.ligature_sitelen_pona(parts: SitelenPonaPart[]): SitelenPonaPart[],
 
 ---@class SitelenPonaModule : module
 local M = {
-	_VERSION = "0.0.4",
+	_VERSION = "0.0.5",
 	_LICENSE = "MIT",
 	_SOURCE  = "https://github.com/ZwerOxotnik/sitelen_pona_lua",
 	_URL     = "https://github.com/ZwerOxotnik/sitelen_pona_lua"
