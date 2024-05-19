@@ -9,7 +9,8 @@
 local M = {
 	_VERSION = "0.0.3",
 	_LICENSE = "MIT",
-	_SOURCE  = "https://github.com/ZwerOxotnik/sitelen_pona_lua"
+	_SOURCE  = "https://github.com/ZwerOxotnik/sitelen_pona_lua",
+	_URL     = "https://github.com/ZwerOxotnik/sitelen_pona_lua"
 }
 
 
