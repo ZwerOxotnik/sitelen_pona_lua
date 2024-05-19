@@ -15,13 +15,13 @@
 --[[
 sitelen_pona.toki_pona_to_sitelen_pona(word: string): SitelenPona?
 sitelen_pona.toki_pona_mute_to_sitelen_pona(_text: string, new_line_pattern="[^\r\n]+"): SitelenPonaPart[], boolean
-sitelen_pona.compound_sitelen_pona(parts: SitelenPonaPart[]): SitelenPonaPart[], boolean
+sitelen_pona.ligature_sitelen_pona(parts: SitelenPonaPart[]): SitelenPonaPart[], boolean
 ]]
 
 
 ---@class SitelenPonaModule : module
 local M = {
-	_VERSION = "0.0.3",
+	_VERSION = "0.0.4",
 	_LICENSE = "MIT",
 	_SOURCE  = "https://github.com/ZwerOxotnik/sitelen_pona_lua",
 	_URL     = "https://github.com/ZwerOxotnik/sitelen_pona_lua"
@@ -37,8 +37,8 @@ local __characters_lexicon = require("characters_to_sitelen_pona")
 M.__characters_lexicon = __characters_lexicon
 
 ---@type table<string, SitelenPona>[]
-local __compound_lexicon = require("sitelen_pona_kulupu")
-M.__compound_lexicon = __compound_lexicon
+local __ligature_lexicon = require("sitelen_pona_kulupu")
+M.__ligature_lexicon = __ligature_lexicon
 
 
 -- TODO: use preprocessor
@@ -275,8 +275,8 @@ end
 
 
 ---@param parts SitelenPonaPart[]
----@return SitelenPonaPart[], boolean # is compounded?
-function M.compound_sitelen_pona(parts)
+---@return SitelenPonaPart[], boolean # is ligatured?
+function M.ligature_sitelen_pona(parts)
 	local parts_copy = {}
 	for i = 1, #parts do
 		parts_copy[i] = parts[i]
@@ -285,8 +285,8 @@ function M.compound_sitelen_pona(parts)
 	if #parts_copy <= 1 then return parts_copy, false end
 
 	local original_text = ""
-	local compound_length = 0
-	local compound_lexicon = __compound_lexicon
+	local ligature_length = 0
+	local ligature_lexicon = __ligature_lexicon
 	local i = 0
 	while true do
 		if i == #parts_copy then
@@ -296,45 +296,45 @@ function M.compound_sitelen_pona(parts)
 		i = i + 1
 		local part = parts_copy[i]
 		if not part.sitelen_pona then
-			compound_length = 0
-			compound_lexicon = __compound_lexicon
+			ligature_length = 0
+			ligature_lexicon = __ligature_lexicon
 			original_text = ""
 			goto skip
 		end
 
 		if part.original == "-" then
-			if compound_length > 0 then
-				compound_length = compound_length + 1
+			if ligature_length > 0 then
+				ligature_length = ligature_length + 1
 			end
 			goto skip
 		end
 
-		compound_lexicon = compound_lexicon[part.sitelen_pona] or __compound_lexicon
-		if compound_lexicon == __compound_lexicon then
+		ligature_lexicon = ligature_lexicon[part.sitelen_pona] or __ligature_lexicon
+		if ligature_lexicon == __ligature_lexicon then
 			original_text = ""
-			compound_length = 0
+			ligature_length = 0
 
-			compound_lexicon = compound_lexicon[part.sitelen_pona]
-			if compound_lexicon == nil then
-				compound_lexicon = __compound_lexicon
+			ligature_lexicon = ligature_lexicon[part.sitelen_pona]
+			if ligature_lexicon == nil then
+				ligature_lexicon = __ligature_lexicon
 				goto skip
 			end
 		end
 
-		compound_length = compound_length + 1
+		ligature_length = ligature_length + 1
 
 		original_text = original_text .. part.original .. " "
-		if type(compound_lexicon) == "table" then
+		if type(ligature_lexicon) == "table" then
 			goto skip
 		end
 
-		local prev_i = i - compound_length + 1
-		for _ = 1, compound_length - 1 do
+		local prev_i = i - ligature_length + 1
+		for _ = 1, ligature_length - 1 do
 			table.remove(parts_copy, prev_i)
 		end
 		i = prev_i
 		parts_copy[i] = {
-			sitelen_pona = compound_lexicon,
+			sitelen_pona = ligature_lexicon,
 			original = original_text,
 			is_add_space = part.is_add_space
 		}
