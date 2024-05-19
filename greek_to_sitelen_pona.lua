@@ -1,6 +1,12 @@
 -- TODO: use preprocess
 
-local dictionary = require("latin_to_sitelen_pona")
+local full_latin_lexicon = require("latin_to_sitelen_pona")
+local latin_lexicon = {}
+for k, v in pairs(full_latin_lexicon) do
+	latin_lexicon[k] = (type(v) == "table" and v[1]) or v
+end
+
+
 ---@type table<string, string>
 local greek_lexicon = {}
 
@@ -21,7 +27,7 @@ local latin_to_greek = {
 }
 
 -- It's probably wrong!
-for word, sitelen_pona in pairs(dictionary) do
+for word, sitelen_pona in pairs(latin_lexicon) do
 	local new_word = ""
 	for l in word:gmatch(".") do
 		new_word = new_word .. (latin_to_greek[l] or l)

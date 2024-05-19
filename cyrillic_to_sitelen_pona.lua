@@ -1,7 +1,12 @@
 -- TODO: use preprocess
 
----@type table<string, string>
-local latin_lexicon = require("latin_to_sitelen_pona")
+local full_latin_lexicon = require("latin_to_sitelen_pona")
+local latin_lexicon = {}
+for k, v in pairs(full_latin_lexicon) do
+	latin_lexicon[k] = (type(v) == "table" and v[1]) or v
+end
+
+
 ---@type table<string, string>
 local cyrillic_lexicon = {}
 

@@ -29,7 +29,11 @@ local M = {
 
 
 ---@type table<string, SitelenPona>[]
-local __lexicon = require("sitelen_pona_lexicon")
+M.__full_lexicon = require("sitelen_pona_lexicon")
+local __lexicon = {}
+for k, v in pairs(M.__full_lexicon) do
+	__lexicon[k] = (type(v) == "table" and v[1]) or v
+end
 M.__lexicon = __lexicon
 
 ---@type table<string, SitelenPona>[]
@@ -150,6 +154,7 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 		local last_part = word
 		local last_result_i = 1
 		while true do
+			-- TODO: remake \/
 			local first_i, last_i, char = last_part:find(__special_char_expr, last_result_i)
 			if first_i == nil then
 				if last_result_i == 1 then
