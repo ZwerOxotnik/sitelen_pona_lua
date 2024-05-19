@@ -5,6 +5,20 @@
 -- License: MIT
 
 
+---@class SitelenPonaPart : table
+---@field sitelen_pona SitelenPona?
+---@field original string?
+---@field is_add_space true?
+---@field is_new_line boolean?
+
+
+--[[
+sitelen_pona.toki_pona_to_sitelen_pona(word: string): SitelenPona?
+sitelen_pona.toki_pona_mute_to_sitelen_pona(_text: string, new_line_pattern="[^\r\n]+"): SitelenPonaPart[], boolean
+sitelen_pona.compound_sitelen_pona(parts: SitelenPonaPart[]): SitelenPonaPart[], boolean
+]]
+
+
 ---@class SitelenPonaModule : module
 local M = {
 	_VERSION = "0.0.3",
@@ -68,13 +82,6 @@ end
 __special_char_expr = __special_char_expr .. "])"
 
 
----@class SitelenPonaPart : table
----@field sitelen_pona SitelenPona?
----@field original string?
----@field is_add_space true?
----@field is_new_line boolean?
-
-
 ---@param word string
 ---@return SitelenPona?
 function M.toki_pona_to_sitelen_pona(word)
@@ -83,7 +90,7 @@ end
 
 
 ---@param _text string
----@param new_line_pattern string?new_line_pattern
+---@param new_line_pattern string? # new_line_pattern
 ---@return SitelenPonaPart[], boolean # string[], is sitelen pona?
 function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 	new_line_pattern = new_line_pattern or "[^\r\n]+"
