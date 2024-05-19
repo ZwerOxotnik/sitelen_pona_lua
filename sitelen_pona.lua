@@ -233,7 +233,6 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 			punc2 = nil
 		end
 
-		local sitelen_pona_char
 		local is_end = #text == end_i
 		if punc then
 			add_punctuations(punc)
