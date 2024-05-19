@@ -56,7 +56,7 @@ local __commas = {
 local __special_char_expr = "(["
 local __spec_string_delimeters = {
 	["「"]  = "」", -- for Chinese Simplified language
-	["﹁"]  = "﹂", -- for Chinese Simplified language
+	-- ["﹁"]  = "﹂", -- for Chinese Simplified language
 	["《"]  = "》", -- for Chinese Simplified language
 	["«"]   = "»", -- for German language
 	["『"]  = "』", -- for Japanese language
@@ -117,7 +117,7 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 				end
 			end
 
-			if last_result_i < last_i and last_result_i > 0 then
+			if last_result_i < last_i then
 				local prev_part = last_part:sub(last_result_i+1, first_i-1)
 				local sitelen_pona_char = __lexicon[prev_part]
 				if sitelen_pona_char then
@@ -152,46 +152,56 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 	---@return string?
 	local function find_special_characters(word)
 		local last_part = word
+		local last_word_i = 1
 		local last_result_i = 1
 		while true do
-			-- TODO: remake \/
 			local first_i, last_i, char = last_part:find(__special_char_expr, last_result_i)
 			if first_i == nil then
-				if last_result_i == 1 then
+				if last_word_i == 1 then
 					return split_numbers(word)
 				else
-					return split_numbers(last_part:sub(last_result_i, #last_part))
+					return split_numbers(last_part:sub(last_word_i, #last_part))
 				end
 			end
 
-			if last_result_i < last_i then
-				local prev_part = last_part:sub(last_result_i, last_i-1)
-				local sitelen_pona_char = __lexicon[prev_part]
+			---@cast first_i integer
+			---@cast last_i integer
+			local special_char_length = __special_chars_length[char]
+			if special_char_length then
+				if last_word_i < last_i then
+					local prev_part = last_part:sub(last_result_i, last_i-1)
+					last_word_i = last_i
+					local sitelen_pona_char = __lexicon[prev_part]
+					if sitelen_pona_char then
+						result[#result+1] = {
+							sitelen_pona = sitelen_pona_char,
+							original = prev_part
+						}
+					else
+						local _word = split_numbers(prev_part)
+						if _word then
+							result[#result+1] = {original = _word}
+						end
+					end
+				end
+
+				last_result_i = last_i + special_char_length
+				local original_char = last_part:sub(last_word_i, last_result_i-1)
+				last_word_i = last_result_i
+				local sitelen_pona_char = __characters_lexicon[original_char]
 				if sitelen_pona_char then
 					result[#result+1] = {
 						sitelen_pona = sitelen_pona_char,
-						original = prev_part
+						original = original_char
 					}
 				else
-					local _word = split_numbers(prev_part)
-					if _word then
-						result[#result+1] = {original = _word}
-					end
+					result[#result+1] = {original = original_char}
 				end
+			else
+				last_result_i = last_i + 1
 			end
 
-			last_result_i = last_i + (__special_chars_length[char] or 1)
-			local original_char = last_part:sub(last_i, last_result_i-1)
-			local sitelen_pona_char = __characters_lexicon[original_char]
-			if sitelen_pona_char then
-				result[#result+1] = {
-					sitelen_pona = sitelen_pona_char,
-					original = original_char
-				}
-			else
-				result[#result+1] = {original = original_char}
-			end
-			if last_i == #char then
+			if last_i >= #word then
 				return nil
 			end
 		end
@@ -220,6 +230,8 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 		local _, end_i, punc, word, punc2 = text:find("^([%p]*)([^%p]*)([%p]*)")
 		if punc == "" then
 			punc = nil
+		else
+			add_punctuations(punc)
 		end
 		if word == "" then
 			word = nil
@@ -234,9 +246,6 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 		end
 
 		local is_end = #text == end_i
-		if punc then
-			add_punctuations(punc)
-		end
 		if word then
 			local sitelen_pona = __lexicon[word]
 			if sitelen_pona then
