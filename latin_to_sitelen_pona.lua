@@ -2,9 +2,6 @@
 
 ---@type table<string, SitelenPona|SitelenPona[]>
 return {
-	["1"] = "󱥳",
-	["2"] = "󱥮",
-	["5"] = "󱤭",
 	a = {"󱤀", "󿬑", "󿵠", "󿵡", "󿵢"},
 	akesi = {"󱤁", "󿵣"},
 	ala = "󱤂",

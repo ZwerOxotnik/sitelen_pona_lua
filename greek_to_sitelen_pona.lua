@@ -7,7 +7,7 @@ for k, v in pairs(full_latin_lexicon) do
 end
 
 
----@type table<string, string>
+---@type table<string, SitelenPona>
 local greek_lexicon = {}
 
 -- It's probably wrong!

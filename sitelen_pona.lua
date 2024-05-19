@@ -21,7 +21,7 @@ sitelen_pona.ligature_sitelen_pona(parts: SitelenPonaPart[]): SitelenPonaPart[],
 
 ---@class SitelenPonaModule : module
 local M = {
-	_VERSION = "0.0.6",
+	_VERSION = "0.0.7",
 	_LICENSE = "MIT",
 	_SOURCE  = "https://github.com/ZwerOxotnik/sitelen_pona_lua",
 	_URL     = "https://github.com/ZwerOxotnik/sitelen_pona_lua"
@@ -53,6 +53,7 @@ local __dots = {
 local __commas = {
 	["、"] = true,
 }
+local __numbers = require("numbers")
 local __special_char_expr = "(["
 local __spec_string_delimeters = {
 	["「"]  = "」", -- for Chinese Simplified language
@@ -70,6 +71,18 @@ for k, v in pairs(__spec_string_delimeters) do
 	_, _, char = v:find("([" .. v .. "])")
 	__special_chars_length[char] = #v
 	__special_char_expr = __special_char_expr .. k .. v
+end
+for k in pairs(__dots) do
+	local _, char
+	_, _, char = k:find("([" .. k .. "])")
+	__special_chars_length[char] = #k
+	__special_char_expr = __special_char_expr .. k
+end
+for k in pairs(__numbers) do
+	local _, char
+	_, _, char = k:find("([" .. k .. "])")
+	__special_chars_length[char] = #k
+	__special_char_expr = __special_char_expr .. k
 end
 for k in pairs(__dots) do
 	local _, char
@@ -169,7 +182,9 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 			---@cast first_i integer
 			---@cast last_i integer
 			local special_char_length = __special_chars_length[char]
-			if special_char_length then
+			if special_char_length == nil then
+				last_result_i = last_i + 1
+			else
 				if last_word_i < last_i then
 					local prev_part = last_part:sub(last_result_i, last_i-1)
 					last_word_i = last_i
@@ -191,19 +206,23 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 				local original_char = last_part:sub(last_word_i, last_result_i-1)
 				last_word_i = last_result_i
 				local sitelen_pona_char = __characters_lexicon[original_char]
-				if sitelen_pona_char then
+				if sitelen_pona_char == nil then
+					result[#result+1] = {original = original_char}
+				else
 					result[#result+1] = {
 						sitelen_pona = sitelen_pona_char,
 						original = original_char
 					}
-				else
-					result[#result+1] = {original = original_char}
 				end
-			else
-				last_result_i = last_i + 1
 			end
 
 			if last_i >= #word then
+				if last_word_i < last_i then
+					local _word = split_numbers(last_part:sub(last_word_i, last_i))
+					if _word then
+						result[#result+1] = {original = _word}
+					end
+				end
 				return nil
 			end
 		end

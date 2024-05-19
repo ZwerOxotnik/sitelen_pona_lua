@@ -1,3 +1,5 @@
+-- Created for "sitelen seli kiwen" font (https://www.kreativekorp.com/software/fonts/sitelenselikiwen/)
+
 ---@class SitelenPona: string
 -- TODO: use preprocess
 
@@ -16,6 +18,11 @@ do
 		end
 	end
 end
+
+
+__lexicon["1"] = "󱥳"
+__lexicon["2"] = "󱥮"
+__lexicon["5"] = "󱤭"
 
 
 return __lexicon
