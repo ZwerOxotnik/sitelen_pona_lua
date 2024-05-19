@@ -1,0 +1,1 @@
+## Warning: perhaps, this repository will be renamed/transformed in the future since there are a lot of work with fonts, numbers, logograms, characters between languages etc.
