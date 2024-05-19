@@ -29,16 +29,16 @@ local M = {
 
 
 ---@type table<string, SitelenPona>[]
-local __syntax = require("sitelen_pona_syntax")
-M.__syntax = __syntax
+local __lexicon = require("sitelen_pona_lexicon")
+M.__lexicon = __lexicon
 
 ---@type table<string, SitelenPona>[]
-local __characters_syntax = require("characters_to_sitelen_pona")
-M.__characters_syntax = __characters_syntax
+local __characters_lexicon = require("characters_to_sitelen_pona")
+M.__characters_lexicon = __characters_lexicon
 
 ---@type table<string, SitelenPona>[]
-local __compound_syntax = require("sitelen_pona_kulupu")
-M.__compound_syntax = __compound_syntax
+local __compound_lexicon = require("sitelen_pona_kulupu")
+M.__compound_lexicon = __compound_lexicon
 
 
 -- TODO: use preprocessor
@@ -85,7 +85,7 @@ __special_char_expr = __special_char_expr .. "])"
 ---@param word string
 ---@return SitelenPona?
 function M.toki_pona_to_sitelen_pona(word)
-	return __syntax[word]
+	return __lexicon[word]
 end
 
 
@@ -115,7 +115,7 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 
 			if last_result_i < last_i and last_result_i > 0 then
 				local prev_part = last_part:sub(last_result_i+1, first_i-1)
-				local sitelen_pona_char = __syntax[prev_part]
+				local sitelen_pona_char = __lexicon[prev_part]
 				if sitelen_pona_char then
 					result[#result+1] = {
 						sitelen_pona = sitelen_pona_char,
@@ -126,7 +126,7 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 				end
 			end
 
-			local sitelen_pona_char = __syntax[number]
+			local sitelen_pona_char = __lexicon[number]
 			if sitelen_pona_char then
 				result[#result+1] = {
 					sitelen_pona = sitelen_pona_char,
@@ -161,7 +161,7 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 
 			if last_result_i < last_i then
 				local prev_part = last_part:sub(last_result_i, last_i-1)
-				local sitelen_pona_char = __syntax[prev_part]
+				local sitelen_pona_char = __lexicon[prev_part]
 				if sitelen_pona_char then
 					result[#result+1] = {
 						sitelen_pona = sitelen_pona_char,
@@ -177,7 +177,7 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 
 			last_result_i = last_i + (__special_chars_length[char] or 1)
 			local original_char = last_part:sub(last_i, last_result_i-1)
-			local sitelen_pona_char = __characters_syntax[original_char]
+			local sitelen_pona_char = __characters_lexicon[original_char]
 			if sitelen_pona_char then
 				result[#result+1] = {
 					sitelen_pona = sitelen_pona_char,
@@ -195,7 +195,7 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 	---@param text string
 	local function add_punctuations(text)
 		for char in text:gmatch(".") do
-			sitelen_pona_char = __characters_syntax[char]
+			sitelen_pona_char = __characters_lexicon[char]
 			if sitelen_pona_char then
 				result[#result+1] = {
 					sitelen_pona = sitelen_pona_char,
@@ -234,7 +234,7 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 			add_punctuations(punc)
 		end
 		if word then
-			local sitelen_pona = __syntax[word]
+			local sitelen_pona = __lexicon[word]
 			if sitelen_pona then
 				result[#result+1] = {
 					sitelen_pona = sitelen_pona,
@@ -286,7 +286,7 @@ function M.compound_sitelen_pona(parts)
 
 	local original_text = ""
 	local compound_length = 0
-	local compound_syntax = __compound_syntax
+	local compound_lexicon = __compound_lexicon
 	local i = 0
 	while true do
 		if i == #parts_copy then
@@ -297,7 +297,7 @@ function M.compound_sitelen_pona(parts)
 		local part = parts_copy[i]
 		if not part.sitelen_pona then
 			compound_length = 0
-			compound_syntax = __compound_syntax
+			compound_lexicon = __compound_lexicon
 			original_text = ""
 			goto skip
 		end
@@ -309,14 +309,14 @@ function M.compound_sitelen_pona(parts)
 			goto skip
 		end
 
-		compound_syntax = compound_syntax[part.sitelen_pona] or __compound_syntax
-		if compound_syntax == __compound_syntax then
+		compound_lexicon = compound_lexicon[part.sitelen_pona] or __compound_lexicon
+		if compound_lexicon == __compound_lexicon then
 			original_text = ""
 			compound_length = 0
 
-			compound_syntax = compound_syntax[part.sitelen_pona]
-			if compound_syntax == nil then
-				compound_syntax = __compound_syntax
+			compound_lexicon = compound_lexicon[part.sitelen_pona]
+			if compound_lexicon == nil then
+				compound_lexicon = __compound_lexicon
 				goto skip
 			end
 		end
@@ -324,7 +324,7 @@ function M.compound_sitelen_pona(parts)
 		compound_length = compound_length + 1
 
 		original_text = original_text .. part.original .. " "
-		if type(compound_syntax) == "table" then
+		if type(compound_lexicon) == "table" then
 			goto skip
 		end
 
@@ -334,7 +334,7 @@ function M.compound_sitelen_pona(parts)
 		end
 		i = prev_i
 		parts_copy[i] = {
-			sitelen_pona = compound_syntax,
+			sitelen_pona = compound_lexicon,
 			original = original_text,
 			is_add_space = part.is_add_space
 		}

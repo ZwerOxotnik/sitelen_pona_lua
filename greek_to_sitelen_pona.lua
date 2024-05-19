@@ -2,7 +2,7 @@
 
 local dictionary = require("latin_to_sitelen_pona")
 ---@type table<string, string>
-local greek_syntax = {}
+local greek_lexicon = {}
 
 -- It's probably wrong!
 local latin_to_greek = {
@@ -26,7 +26,7 @@ for word, sitelen_pona in pairs(dictionary) do
 	for l in word:gmatch(".") do
 		new_word = new_word .. (latin_to_greek[l] or l)
 	end
-	greek_syntax[new_word] = sitelen_pona
+	greek_lexicon[new_word] = sitelen_pona
 end
 
-return greek_syntax
+return greek_lexicon

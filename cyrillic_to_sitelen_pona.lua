@@ -1,9 +1,9 @@
 -- TODO: use preprocess
 
 ---@type table<string, string>
-local latin_syntax = require("latin_to_sitelen_pona")
+local latin_lexicon = require("latin_to_sitelen_pona")
 ---@type table<string, string>
-local cyrillic_syntax = {}
+local cyrillic_lexicon = {}
 
 -- Я знаю что это неправильно, но хуже иметь не правильное отображение
 local latin_to_cyrillic = {
@@ -31,7 +31,7 @@ local latin2_to_cyrillic = {
 
 
 -- It has some mistakes and it can be optimized
-for word, sitelen_pona in pairs(latin_syntax) do
+for word, sitelen_pona in pairs(latin_lexicon) do
 	---@param _word string
 	local function parse_word(_word)
 		local new_words = {}
@@ -76,7 +76,7 @@ for word, sitelen_pona in pairs(latin_syntax) do
 
 		-- Add words
 		for _, new_word in pairs(new_words) do
-			cyrillic_syntax[new_word] = sitelen_pona
+			cyrillic_lexicon[new_word] = sitelen_pona
 		end
 		for k in pairs(new_words) do
 			new_words[k] = nil
@@ -114,4 +114,4 @@ for word, sitelen_pona in pairs(latin_syntax) do
 	recursive_parse_word(word)
 end
 
-return cyrillic_syntax
+return cyrillic_lexicon
