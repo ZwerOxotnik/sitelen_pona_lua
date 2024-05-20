@@ -1,13 +1,17 @@
 -- Created for "sitelen seli kiwen" font (https://www.kreativekorp.com/software/fonts/sitelenselikiwen/)
 
+package.loaded.romanized_lexicon = nil
+local full_latin_lexicon = require("romanized_lexicon")
+package.loaded.romanized_lexicon = nil
 
-local full_latin_lexicon = require("latin_to_sitelen_pona")
 local latin_lexicon = {}
 for k, v in pairs(full_latin_lexicon) do
 	latin_lexicon[k] = (type(v) == "table" and v[1]) or v
 end
 
+package.loaded.numbers = nil
 local numbers = require("numbers")
+package.loaded.numbers = nil
 
 
 local result = {

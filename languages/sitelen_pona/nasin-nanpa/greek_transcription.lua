@@ -1,6 +1,6 @@
 -- TODO: use preprocess
 
-local full_latin_lexicon = require("latin_to_sitelen_pona")
+local full_latin_lexicon = require("romanized_lexicon")
 local latin_lexicon = {}
 for k, v in pairs(full_latin_lexicon) do
 	latin_lexicon[k] = (type(v) == "table" and v[1]) or v

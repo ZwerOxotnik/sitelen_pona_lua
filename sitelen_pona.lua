@@ -1,5 +1,5 @@
 -- Library to simplify text interactions with sitelen pona
--- sitelen pona: https://sona.pona.la/wiki/sitelen_pona/en
+-- sitelen pona: https://sona.pona.la/wiki/languages/sitelen_pona/en
 -- toki pona: https://tokipona.org
 -- Maintainer: ZwerOxotnik
 -- License: MIT
@@ -13,35 +13,60 @@
 
 
 --[[
-sitelen_pona.toki_pona_to_sitelen_pona(word: string): SitelenPona?
-sitelen_pona.toki_pona_mute_to_sitelen_pona(_text: string, new_line_pattern="[^\r\n]+"): SitelenPonaPart[], boolean
-sitelen_pona.ligature_sitelen_pona(parts: SitelenPonaPart[]): SitelenPonaPart[], boolean
+M.transcribe(language: string, font: string, _text: string, new_line_pattern="[^\r\n]+"): SitelenPonaPart[], boolean
+M.ligature(language: string, font: string, parts: SitelenPonaPart[]): SitelenPonaPart[], boolean
 ]]
 
 
 ---@class SitelenPonaModule : module
 local M = {
-	_VERSION = "0.0.8",
+	_VERSION = "0.1.0",
 	_LICENSE = "MIT",
 	_SOURCE  = "https://github.com/ZwerOxotnik/sitelen_pona_lua",
 	_URL     = "https://github.com/ZwerOxotnik/sitelen_pona_lua"
 }
 
 
----@type table<string, SitelenPona>[]
-M.__full_lexicon = require("sitelen_pona_lexicon")
+M.__full_lexicon = {
+	sitelen_pona = {
+		sitelenselikiwen = require("languages/sitelen_pona/sitelenselikiwen/lexicon"),
+		["nasin-nanpa"]  = require("languages/sitelen_pona/nasin-nanpa/lexicon"),
+	},
+	tuki_tiki = {
+		sitelenselikiwen = require("languages/tuki_tiki/sitelenselikiwen/lexicon"),
+	},
+}
+---@type table<string, table<string, table<string, SitelenPona>[]>>
 local __lexicon = {}
-for k, v in pairs(M.__full_lexicon) do
-	__lexicon[k] = (type(v) == "table" and v[1]) or v
+for language, font_data in pairs(M.__full_lexicon) do
+	__lexicon[language] = {}
+	for font_name, symbols in pairs(font_data) do
+		__lexicon[language][font_name] = {}
+		for k, v in pairs(symbols) do
+			__lexicon[language][font_name][k] = (type(v) == "table" and v[1]) or v
+		end
+	end
 end
 M.__lexicon = __lexicon
 
 ---@type table<string, SitelenPona>[]
-local __characters_lexicon = require("characters_to_sitelen_pona")
+local __characters_lexicon = {
+	sitelen_pona = {
+		sitelenselikiwen = require("languages/sitelen_pona/sitelenselikiwen/characters"),
+		["nasin-nanpa"]  = require("languages/sitelen_pona/nasin-nanpa/characters"),
+	},
+	tuki_tiki = {
+		sitelenselikiwen = require("languages/tuki_tiki/sitelenselikiwen/characters"),
+	},
+}
 M.__characters_lexicon = __characters_lexicon
 
 ---@type table<string, SitelenPona>[]
-local __ligature_lexicon = require("sitelen_pona_kulupu")
+local __ligature_lexicon = {
+	sitelen_pona = {
+		sitelenselikiwen = require("languages/sitelen_pona/sitelenselikiwen/ligature"),
+	},
+}
 M.__ligature_lexicon = __ligature_lexicon
 
 
@@ -53,7 +78,7 @@ local __dots = {
 local __commas = {
 	["、"] = true,
 }
-local __numbers = require("numbers")
+local __numbers = require("languages/sitelen_pona/sitelenselikiwen/numbers") -- TODO: chagne
 local __special_char_expr = "(["
 local __spec_string_delimeters = {
 	["「"]  = "」", -- for Chinese Simplified language
@@ -99,21 +124,19 @@ end
 __special_char_expr = __special_char_expr .. "])"
 
 
----@param word string
----@return SitelenPona?
-function M.toki_pona_to_sitelen_pona(word)
-	return __lexicon[word]
-end
-
-
+---@param language string
+---@param font string
 ---@param _text string
 ---@param new_line_pattern string? # new_line_pattern
 ---@return SitelenPonaPart[], boolean # string[], is sitelen pona?
-function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
+function M.transcribe(language, font, _text, new_line_pattern)
 	new_line_pattern = new_line_pattern or "[^\r\n]+"
+	_text = _text:lower()
 	local is_sitelen_pona = false
 	local result = {}
 
+	local _characters_lexicon = __characters_lexicon[language][font]
+	local _lexicon = __lexicon[language][font]
 
 	---@param word string
 	---@return string?
@@ -134,7 +157,7 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 			---@cast last_i integer
 			if last_result_i < last_i then
 				local prev_part = last_part:sub(last_result_i+1, first_i-1)
-				local sitelen_pona_char = __lexicon[prev_part]
+				local sitelen_pona_char = _lexicon[prev_part]
 				if sitelen_pona_char then
 					result[#result+1] = {
 						result_text = sitelen_pona_char,
@@ -145,7 +168,7 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 				end
 			end
 
-			local sitelen_pona_char = __lexicon[number]
+			local sitelen_pona_char = _lexicon[number]
 			if sitelen_pona_char then
 				result[#result+1] = {
 					result_text = sitelen_pona_char,
@@ -188,7 +211,7 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 				if last_word_i < last_i then
 					local prev_part = last_part:sub(last_result_i, last_i-1)
 					last_word_i = last_i
-					local sitelen_pona_char = __lexicon[prev_part]
+					local sitelen_pona_char = _lexicon[prev_part]
 					if sitelen_pona_char then
 						result[#result+1] = {
 							result_text = sitelen_pona_char,
@@ -205,7 +228,7 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 				last_result_i = last_i + special_char_length
 				local original_char = last_part:sub(last_word_i, last_result_i-1)
 				last_word_i = last_result_i
-				local sitelen_pona_char = __characters_lexicon[original_char]
+				local sitelen_pona_char = _characters_lexicon[original_char]
 				if sitelen_pona_char == nil then
 					result[#result+1] = {original = original_char}
 				else
@@ -231,7 +254,7 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 	---@param text string
 	local function add_punctuations(text)
 		for char in text:gmatch(".") do
-			sitelen_pona_char = __characters_lexicon[char]
+			sitelen_pona_char = _characters_lexicon[char]
 			if sitelen_pona_char then
 				result[#result+1] = {
 					result_text = sitelen_pona_char,
@@ -268,7 +291,7 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 
 		local is_end = #text == end_i
 		if word then
-			local sitelen_pona = __lexicon[word]
+			local sitelen_pona = _lexicon[word]
 			if sitelen_pona then
 				result[#result+1] = {
 					result_text = sitelen_pona,
@@ -308,19 +331,25 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 end
 
 
+---@param language string
+---@param font string
 ---@param parts SitelenPonaPart[]
 ---@return SitelenPonaPart[], boolean # is ligatured?
-function M.ligature_sitelen_pona(parts)
+function M.ligature(language, font, parts)
 	local parts_copy = {}
 	for i = 1, #parts do
 		parts_copy[i] = parts[i]
 	end
 
+	if __ligature_lexicon[language] == nil then return parts, false end
+	local _ligature_lexicon = __ligature_lexicon[language][font]
+	if _ligature_lexicon == nil then return parts, false end
+
 	if #parts_copy <= 1 then return parts_copy, false end
 
 	local original_text = ""
 	local ligature_length = 0
-	local ligature_lexicon = __ligature_lexicon
+	local ligature_lexicon = _ligature_lexicon
 	local i = 0
 	while true do
 		if i == #parts_copy then
@@ -329,9 +358,9 @@ function M.ligature_sitelen_pona(parts)
 
 		i = i + 1
 		local part = parts_copy[i]
-		if not part.sitelen_pona then
+		if not part.result_text then
 			ligature_length = 0
-			ligature_lexicon = __ligature_lexicon
+			ligature_lexicon = _ligature_lexicon
 			original_text = ""
 			goto skip
 		end
@@ -343,14 +372,14 @@ function M.ligature_sitelen_pona(parts)
 			goto skip
 		end
 
-		ligature_lexicon = ligature_lexicon[part.sitelen_pona] or __ligature_lexicon
-		if ligature_lexicon == __ligature_lexicon then
+		ligature_lexicon = ligature_lexicon[part.result_text] or _ligature_lexicon
+		if ligature_lexicon == _ligature_lexicon then
 			original_text = ""
 			ligature_length = 0
 
-			ligature_lexicon = ligature_lexicon[part.sitelen_pona]
+			ligature_lexicon = ligature_lexicon[part.result_text]
 			if ligature_lexicon == nil then
-				ligature_lexicon = __ligature_lexicon
+				ligature_lexicon = _ligature_lexicon
 				goto skip
 			end
 		end

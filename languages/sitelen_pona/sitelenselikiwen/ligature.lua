@@ -1,6 +1,6 @@
 -- Created for "sitelen seli kiwen" font (https://www.kreativekorp.com/software/fonts/sitelenselikiwen/)
 
-local l = require("latin_to_sitelen_pona")
+local l = require("romanized_lexicon")
 
 return {
 	[l.anpa] = {
