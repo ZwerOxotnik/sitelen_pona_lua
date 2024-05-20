@@ -6,7 +6,7 @@
 
 
 ---@class SitelenPonaPart : table
----@field sitelen_pona SitelenPona?
+---@field result_text SitelenPona?
 ---@field original string?
 ---@field is_add_space true?
 ---@field is_new_line boolean?
@@ -21,7 +21,7 @@ sitelen_pona.ligature_sitelen_pona(parts: SitelenPonaPart[]): SitelenPonaPart[],
 
 ---@class SitelenPonaModule : module
 local M = {
-	_VERSION = "0.0.7",
+	_VERSION = "0.0.8",
 	_LICENSE = "MIT",
 	_SOURCE  = "https://github.com/ZwerOxotnik/sitelen_pona_lua",
 	_URL     = "https://github.com/ZwerOxotnik/sitelen_pona_lua"
@@ -137,7 +137,7 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 				local sitelen_pona_char = __lexicon[prev_part]
 				if sitelen_pona_char then
 					result[#result+1] = {
-						sitelen_pona = sitelen_pona_char,
+						result_text = sitelen_pona_char,
 						original = prev_part
 					}
 				else
@@ -148,7 +148,7 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 			local sitelen_pona_char = __lexicon[number]
 			if sitelen_pona_char then
 				result[#result+1] = {
-					sitelen_pona = sitelen_pona_char,
+					result_text = sitelen_pona_char,
 					original = number
 				}
 			else
@@ -191,7 +191,7 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 					local sitelen_pona_char = __lexicon[prev_part]
 					if sitelen_pona_char then
 						result[#result+1] = {
-							sitelen_pona = sitelen_pona_char,
+							result_text = sitelen_pona_char,
 							original = prev_part
 						}
 					else
@@ -210,7 +210,7 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 					result[#result+1] = {original = original_char}
 				else
 					result[#result+1] = {
-						sitelen_pona = sitelen_pona_char,
+						result_text = sitelen_pona_char,
 						original = original_char
 					}
 				end
@@ -234,7 +234,7 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 			sitelen_pona_char = __characters_lexicon[char]
 			if sitelen_pona_char then
 				result[#result+1] = {
-					sitelen_pona = sitelen_pona_char,
+					result_text = sitelen_pona_char,
 					original = char,
 					is_add_space = (is_end and word == nil)
 				}
@@ -271,7 +271,7 @@ function M.toki_pona_mute_to_sitelen_pona(_text, new_line_pattern)
 			local sitelen_pona = __lexicon[word]
 			if sitelen_pona then
 				result[#result+1] = {
-					sitelen_pona = sitelen_pona,
+					result_text = sitelen_pona,
 					original = word,
 					is_add_space = (is_end and punc2 == nil)
 				}
@@ -368,7 +368,7 @@ function M.ligature_sitelen_pona(parts)
 		end
 		i = prev_i
 		parts_copy[i] = {
-			sitelen_pona = ligature_lexicon,
+			result_text = ligature_lexicon,
 			original = original_text,
 			is_add_space = part.is_add_space
 		}
