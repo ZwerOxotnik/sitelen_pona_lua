@@ -26,7 +26,7 @@ M.ConScriptParts_to_string(parts: ConScriptPart[], new_line_characters="\r\n"): 
 
 ---@class ConScriptModule : module
 local M = {
-	_VERSION = "0.2.0",
+	_VERSION = "0.2.1",
 	_LICENSE = "MIT",
 	_SOURCE  = "https://github.com/ZwerOxotnik/sitelen_pona_lua",
 	_URL     = "https://github.com/ZwerOxotnik/sitelen_pona_lua"
@@ -362,6 +362,7 @@ function M.ligature(language, font, parts)
 	local ligature_lexicon = _ligature_lexicon
 	local i = 0
 	while true do
+	while true do
 		if i == #parts_copy then
 			return parts_copy, #parts_copy ~= #parts
 		end
@@ -372,14 +373,14 @@ function M.ligature(language, font, parts)
 			ligature_length = 0
 			ligature_lexicon = _ligature_lexicon
 			original_text = ""
-			goto skip
+			break -- it's continue actually
 		end
 
 		if part.original == "-" then
 			if ligature_length > 0 then
 				ligature_length = ligature_length + 1
 			end
-			goto skip
+			break -- it's continue actually
 		end
 
 		ligature_lexicon = ligature_lexicon[part.result_text] or _ligature_lexicon
@@ -390,15 +391,15 @@ function M.ligature(language, font, parts)
 			ligature_lexicon = ligature_lexicon[part.result_text]
 			if ligature_lexicon == nil then
 				ligature_lexicon = _ligature_lexicon
-				goto skip
+				break -- it's continue actually
 			end
 		end
 
 		ligature_length = ligature_length + 1
 
 		original_text = original_text .. part.original .. " "
-		if type(ligature_lexicon) ~= "table" then
-			goto skip
+		if type(ligature_lexicon) == "table" then
+			break -- it's continue actually
 		end
 
 		local prev_i = i - ligature_length + 1
@@ -411,8 +412,7 @@ function M.ligature(language, font, parts)
 			original = original_text,
 			is_add_space = part.is_add_space
 		}
-
-		::skip::
+	end
 	end
 end
 
@@ -432,24 +432,21 @@ function M.ConScriptParts_to_string(parts, new_line_characters)
 		if part.is_new_line then
 			r_i = r_i + 1
 			results[r_i] = new_line_characters
-			goto continue
-		end
-
-		r_i = r_i + 1
-		if part.result_text then
-			results[r_i] = part.result_text
-			is_ConScript_part = true
 		else
-			results[r_i] = part.original
-			is_ConScript_part = false
-		end
-
-		if not is_ConScript_part and part.is_add_space then
 			r_i = r_i + 1
-			results[r_i] = " "
-		end
+			if part.result_text then
+				results[r_i] = part.result_text
+				is_ConScript_part = true
+			else
+				results[r_i] = part.original
+				is_ConScript_part = false
+			end
 
-		::continue::
+			if not is_ConScript_part and part.is_add_space then
+				r_i = r_i + 1
+				results[r_i] = " "
+			end
+		end
 	end
 
 	return table.concat(results, "")
