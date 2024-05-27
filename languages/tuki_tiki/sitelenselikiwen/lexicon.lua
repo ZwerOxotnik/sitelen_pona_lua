@@ -1,16 +1,15 @@
 -- Created for "sitelen seli kiwen" font (https://github.com/ETBCOR/nasin-nanpa)
 
----@class SitelenPona: string
 -- TODO: use preprocess
 
----@type table<string, SitelenPona>
+---@type table<string, TitiPula>
 local __lexicon = {}
 do
 	package.loaded.romanized_lexicon   = nil
 	package.loaded.cyrillization       = nil
 	package.loaded.greek_transcription = nil
 
-	---@type table<string, SitelenPona>[]
+	---@type table<string, TitiPula>[]
 	local lexicons = {
 		require("romanized_lexicon"),
 		require("cyrillization"),

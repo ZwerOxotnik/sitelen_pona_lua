@@ -1,6 +1,5 @@
 -- Created for "sitelen seli kiwen" font (https://www.kreativekorp.com/software/fonts/sitelenselikiwen/)
 
----@class SitelenPona: string
 -- TODO: use preprocess
 
 ---@type table<string, SitelenPona>

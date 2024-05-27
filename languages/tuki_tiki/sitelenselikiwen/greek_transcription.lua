@@ -7,7 +7,7 @@ for k, v in pairs(full_latin_lexicon) do
 end
 
 
----@type table<string, SitelenPona>
+---@type table<string, TitiPula>
 local greek_lexicon = {}
 
 -- It's probably wrong!
@@ -27,12 +27,12 @@ local latin_to_greek = {
 }
 
 -- It's probably wrong!
-for word, sitelen_pona in pairs(latin_lexicon) do
+for word, titi_pula in pairs(latin_lexicon) do
 	local new_word = ""
 	for l in word:gmatch(".") do
 		new_word = new_word .. (latin_to_greek[l] or l)
 	end
-	greek_lexicon[new_word] = sitelen_pona
+	greek_lexicon[new_word] = titi_pula
 end
 
 return greek_lexicon

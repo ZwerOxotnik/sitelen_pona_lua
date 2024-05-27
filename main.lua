@@ -1,32 +1,39 @@
--- Library to simplify text interactions with sitelen pona
--- sitelen pona: https://sona.pona.la/wiki/languages/sitelen_pona/en
--- toki pona: https://tokipona.org
+-- Library to simplify text interactions with logographic writing systems.
 -- Maintainer: ZwerOxotnik
 -- License: MIT
 
 
----@class SitelenPonaPart : table
----@field result_text SitelenPona?
+--[[
+
+M.transcribe(language: string, font: string, _text: string, new_line_pattern="[^\r\n]+"): ConScriptPart[], boolean
+M.ligature(language: string, font: string, parts: ConScriptPart[]): ConScriptPart[], boolean
+M.ConScriptParts_to_string(parts: ConScriptPart[], new_line_characters="\r\n"): string
+
+]]
+
+
+---@class SitelenPona: string #  https://sona.pona.la/wiki/languages/sitelen_pona/en
+---@class TitiPula: string
+---@class ConScript: SitelenPona, TitiPula
+
+
+---@class ConScriptPart : table
+---@field result_text ConScript?
 ---@field original string?
 ---@field is_add_space true?
 ---@field is_new_line boolean?
 
 
---[[
-M.transcribe(language: string, font: string, _text: string, new_line_pattern="[^\r\n]+"): SitelenPonaPart[], boolean
-M.ligature(language: string, font: string, parts: SitelenPonaPart[]): SitelenPonaPart[], boolean
-]]
-
-
----@class SitelenPonaModule : module
+---@class ConScriptModule : module
 local M = {
-	_VERSION = "0.1.0",
+	_VERSION = "0.2.0",
 	_LICENSE = "MIT",
 	_SOURCE  = "https://github.com/ZwerOxotnik/sitelen_pona_lua",
 	_URL     = "https://github.com/ZwerOxotnik/sitelen_pona_lua"
 }
 
 
+---@type table<string, table<string, table<string, ConScript|ConScript[]>>>
 M.__full_lexicon = {
 	sitelen_pona = {
 		sitelenselikiwen = require("languages/sitelen_pona/sitelenselikiwen/lexicon"),
@@ -36,7 +43,7 @@ M.__full_lexicon = {
 		sitelenselikiwen = require("languages/tuki_tiki/sitelenselikiwen/lexicon"),
 	},
 }
----@type table<string, table<string, table<string, SitelenPona>[]>>
+
 local __lexicon = {}
 for language, font_data in pairs(M.__full_lexicon) do
 	__lexicon[language] = {}
@@ -47,21 +54,24 @@ for language, font_data in pairs(M.__full_lexicon) do
 		end
 	end
 end
+---@cast __lexicon table<string, table<string, table<string, ConScript>>>
 M.__lexicon = __lexicon
 
----@type table<string, SitelenPona>[]
+
 local __characters_lexicon = {
+	---@type table<string, table<string, SitelenPona|SitelenPona[]>>
 	sitelen_pona = {
 		sitelenselikiwen = require("languages/sitelen_pona/sitelenselikiwen/characters"),
 		["nasin-nanpa"]  = require("languages/sitelen_pona/nasin-nanpa/characters"),
 	},
+	---@type table<string, table<string, TitiPula|TitiPula[]>>
 	tuki_tiki = {
 		sitelenselikiwen = require("languages/tuki_tiki/sitelenselikiwen/characters"),
 	},
 }
 M.__characters_lexicon = __characters_lexicon
 
----@type table<string, SitelenPona>[]
+---@type table<string, table<string, table<string, table>>>
 local __ligature_lexicon = {
 	sitelen_pona = {
 		sitelenselikiwen = require("languages/sitelen_pona/sitelenselikiwen/ligature"),
@@ -128,7 +138,7 @@ __special_char_expr = __special_char_expr .. "])"
 ---@param font string
 ---@param _text string
 ---@param new_line_pattern string? # new_line_pattern
----@return SitelenPonaPart[], boolean # string[], is sitelen pona?
+---@return ConScriptPart[], boolean # string[], is sitelen pona?
 function M.transcribe(language, font, _text, new_line_pattern)
 	new_line_pattern = new_line_pattern or "[^\r\n]+"
 	_text = _text:lower()
@@ -333,8 +343,8 @@ end
 
 ---@param language string
 ---@param font string
----@param parts SitelenPonaPart[]
----@return SitelenPonaPart[], boolean # is ligatured?
+---@param parts ConScriptPart[]
+---@return ConScriptPart[], boolean # is ligatured?
 function M.ligature(language, font, parts)
 	local parts_copy = {}
 	for i = 1, #parts do
@@ -387,7 +397,7 @@ function M.ligature(language, font, parts)
 		ligature_length = ligature_length + 1
 
 		original_text = original_text .. part.original .. " "
-		if type(ligature_lexicon) == "table" then
+		if type(ligature_lexicon) ~= "table" then
 			goto skip
 		end
 
@@ -404,6 +414,45 @@ function M.ligature(language, font, parts)
 
 		::skip::
 	end
+end
+
+
+---@param parts ConScriptPart[]
+---@param new_line_characters string? # Default: "\r\n"
+---@return string
+function M.ConScriptParts_to_string(parts, new_line_characters)
+	local results = {}
+	local r_i = 0
+	new_line_characters = new_line_characters or "\r\n"
+
+	local is_ConScript_part = false
+	for i=1, #parts do
+		local part = parts[i]
+
+		if part.is_new_line then
+			r_i = r_i + 1
+			results[r_i] = new_line_characters
+			goto continue
+		end
+
+		r_i = r_i + 1
+		if part.result_text then
+			results[r_i] = part.result_text
+			is_ConScript_part = true
+		else
+			results[r_i] = part.original
+			is_ConScript_part = false
+		end
+
+		if not is_ConScript_part and part.is_add_space then
+			r_i = r_i + 1
+			results[r_i] = " "
+		end
+
+		::continue::
+	end
+
+	return table.concat(results, "")
 end
 
 

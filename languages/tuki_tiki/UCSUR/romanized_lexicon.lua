@@ -1,4 +1,4 @@
--- Created for "sitelen seli kiwen" font (https://github.com/ETBCOR/nasin-nanpa)
+-- Created for (https://www.kreativekorp.com/ucsur/charts/titi-pula.html)
 
 ---@type table<string, TitiPula>
 return {

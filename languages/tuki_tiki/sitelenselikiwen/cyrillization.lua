@@ -7,7 +7,7 @@ for k, v in pairs(full_latin_lexicon) do
 end
 
 
----@type table<string, SitelenPona>
+---@type table<string, TitiPula>
 local cyrillic_lexicon = {}
 
 -- Я знаю что это неправильно, но хуже иметь не правильное отображение
@@ -36,7 +36,7 @@ local latin2_to_cyrillic = {
 
 
 -- It has some mistakes and it can be optimized
-for word, sitelen_pona in pairs(latin_lexicon) do
+for word, titi_pula in pairs(latin_lexicon) do
 	---@param _word string
 	local function parse_word(_word)
 		local new_words = {}
@@ -81,7 +81,7 @@ for word, sitelen_pona in pairs(latin_lexicon) do
 
 		-- Add words
 		for _, new_word in pairs(new_words) do
-			cyrillic_lexicon[new_word] = sitelen_pona
+			cyrillic_lexicon[new_word] = titi_pula
 		end
 		for k in pairs(new_words) do
 			new_words[k] = nil

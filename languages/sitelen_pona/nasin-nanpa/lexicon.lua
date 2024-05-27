@@ -1,6 +1,5 @@
 -- Created for "nasin-nanpa" font (https://github.com/ETBCOR/nasin-nanpa)
 
----@class SitelenPona: string
 -- TODO: use preprocess
 
 ---@type table<string, SitelenPona>
