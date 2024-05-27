@@ -93,7 +93,6 @@ for word, titi_pula in pairs(latin_lexicon) do
 		for latin_pattern, new_cyrillic_letter in pairs(latin2_to_cyrillic) do
 			local new_word, last_word
 			repeat
-				print(string.format("new_word: %s, last_word: %s, _word: %s latin_pattern: %s", new_word or "", last_word or "", _word, latin_pattern))
 				if type(new_cyrillic_letter) ~= "table" then
 					new_word = _word:gsub(latin_pattern, new_cyrillic_letter, 1)
 					if new_word ~= last_word and new_word ~= _word then
