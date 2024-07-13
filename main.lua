@@ -58,6 +58,36 @@ end
 M.__lexicon = __lexicon
 
 
+local __special_chars_length = {} -- messy workaround due to Lua bug
+
+
+local __ligature_transriptions = {
+	---@type table<string, table<string, string>>
+	sitelen_pona = {
+		["japan"] = require("languages/sitelen_pona/japan_transcription"),
+		["simplified_chinese"] = require("languages/sitelen_pona/simplified_chinese_transcription")
+	}
+}
+M.__ligature_transriptions = __ligature_transriptions
+local __ligature_transription = {}
+local __special_ligature_exprs = {}
+for _language, languages in pairs(__ligature_transriptions) do
+	local ligature_transription = {}
+	local __special_ligature_expr = "(["
+	local char
+	for language, words in pairs(languages) do
+		for word1, word2 in pairs(words) do
+			ligature_transription[word1] = word2
+			__special_ligature_expr = __special_ligature_expr .. word1
+			_, _, char = word1:find("([" .. word1 .. "])")
+			__special_chars_length[char] = #word1
+		end
+	end
+	__special_ligature_exprs[_language] = __special_ligature_expr .. "])"
+	__ligature_transription[_language] = ligature_transription
+end
+M.__ligature_transription = __ligature_transription
+
 local __characters_lexicon = {
 	---@type table<string, table<string, SitelenPona|SitelenPona[]>>
 	sitelen_pona = {
@@ -81,7 +111,6 @@ M.__ligature_lexicon = __ligature_lexicon
 
 
 -- TODO: use preprocessor
-local __special_chars_length = {} -- messy workaround due to Lua bug
 local __dots = {
 	["。"] = true,
 }
@@ -145,6 +174,8 @@ function M.transcribe(language, font, _text, new_line_pattern)
 	local is_sitelen_pona = false
 	local result = {}
 
+	local _special_ligature_expr = __special_ligature_exprs[language]
+	local _ligature_transription = __ligature_transription[language]
 	local _characters_lexicon = __characters_lexicon[language][font]
 	local _lexicon = __lexicon[language][font]
 
@@ -203,12 +234,20 @@ function M.transcribe(language, font, _text, new_line_pattern)
 		local last_word_i = 1
 		local last_result_i = 1
 		while true do
-			local first_i, last_i, char = last_part:find(__special_char_expr, last_result_i)
+			local is_ligature = false
+			local first_i, last_i, char = last_part:find(__special_char_expr, last_result_i) -- todo: fix order of searching and use a correct way to search
 			if first_i == nil then
-				if last_word_i == 1 then
-					return split_numbers(word)
+				if _special_ligature_expr then
+					first_i, last_i, char = last_part:find(_special_ligature_expr, last_result_i) -- todo: fix order of searching and use a correct way to search
+				end
+				if first_i ~= nil then
+					is_ligature = true
 				else
-					return split_numbers(last_part:sub(last_word_i, #last_part))
+					if last_word_i == 1 then
+						return split_numbers(word)
+					else
+						return split_numbers(last_part:sub(last_word_i, #last_part))
+					end
 				end
 			end
 
@@ -238,7 +277,16 @@ function M.transcribe(language, font, _text, new_line_pattern)
 				last_result_i = last_i + special_char_length
 				local original_char = last_part:sub(last_word_i, last_result_i-1)
 				last_word_i = last_result_i
-				local sitelen_pona_char = _characters_lexicon[original_char]
+				local sitelen_pona_char
+				if is_ligature then
+					local _word = __ligature_transription[original_char]
+					if _word then
+						sitelen_pona_char = _lexicon[_word]
+					end
+				else
+					sitelen_pona_char = _characters_lexicon[original_char]
+				end
+
 				if sitelen_pona_char == nil then
 					result[#result+1] = {original = original_char}
 				else
@@ -251,9 +299,21 @@ function M.transcribe(language, font, _text, new_line_pattern)
 
 			if last_i >= #word then
 				if last_word_i < last_i then
-					local _word = split_numbers(last_part:sub(last_word_i, last_i))
-					if _word then
-						result[#result+1] = {original = _word}
+					local rest_word = split_numbers(last_part:sub(last_word_i, last_i))
+					if rest_word then
+						local transripted_word = _ligature_transription[word]
+						local new_symbol
+						if transripted_word then
+							new_symbol = _lexicon[transripted_word]
+						end
+						if not new_symbol then
+							result[#result+1] = {original = rest_word}
+						else
+							result[#result+1] = {
+								result_text = new_symbol,
+								original = word,
+							}
+						end
 					end
 				end
 				return nil
@@ -301,10 +361,10 @@ function M.transcribe(language, font, _text, new_line_pattern)
 
 		local is_end = #text == end_i
 		if word then
-			local sitelen_pona = _lexicon[word]
-			if sitelen_pona then
+			local new_symbol = _lexicon[word]
+			if new_symbol then
 				result[#result+1] = {
-					result_text = sitelen_pona,
+					result_text = new_symbol,
 					original = word,
 					is_add_space = (is_end and punc2 == nil)
 				}

@@ -10,11 +10,11 @@ end
 ---@type table<string, SitelenPona>
 local greek_lexicon = {}
 
--- It's probably wrong!
 local latin_to_greek = {
 	a = "α",
 	e = "ε",
 	i = "ι",
+	j = "γ",
 	k = "κ",
 	l = "λ",
 	m = "μ",
@@ -23,7 +23,8 @@ local latin_to_greek = {
 	p = "π",
 	s = "σ",
 	t = "τ",
-	u = "υ"
+	u = "υ",
+	w = "β"
 }
 
 -- It's probably wrong!
